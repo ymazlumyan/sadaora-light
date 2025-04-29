@@ -1,28 +1,38 @@
 import { useEffect, useState } from "react"
-import { firebaseAuth, fireDb } from "../firebase"
-import { collection, getDocs } from "firebase/firestore"
 import { Link } from "react-router-dom"
+import axios from 'axios'
 
 export function Home() {
     const [users, setUsers] = useState<any[]>([])
 
     const userList = async () => {
-        await getDocs(collection(fireDb, 'users'))
-            .then((snapshot) => {
-                const data = snapshot.docs
-                    .map((doc) => ({ ...doc.data(), id: doc.id }))
+        const result = await axios.get(`${import.meta.env.VITE_REACT_APP_BASE_URI}/users/`)
 
-                setUsers(data)
-            })
+        const userList: any[] = Array.from(result.data)
+        let userArray = []
+        if (userList) {
+            for (const user of userList) {
+                userArray.push({
+                    email: user.email,
+                    username: user.username,
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                })
+            }
+
+            setUsers(userArray)
+        }
     }
 
     useEffect(() => {
         userList()
+        console.log(users)
     }, [])
 
 
     const onSignOut = () => {
-        firebaseAuth.signOut()
+        localStorage.removeItem('session_token')
+        window.location.reload()
     }
 
     return (

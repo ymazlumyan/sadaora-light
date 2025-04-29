@@ -1,23 +1,18 @@
-import { createUserWithEmailAndPassword } from "firebase/auth"
-import { doc, setDoc } from "firebase/firestore"
+import axios from "axios"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
-import { fireDb, firebaseAuth } from "../firebase"
 
 export function Register() {
     const { register, handleSubmit } = useForm()
     const navigate = useNavigate()
 
     const onSubmit = async (data: any) => {
-        createUserWithEmailAndPassword(firebaseAuth, data.email, data.password)
-        const userId = firebaseAuth.currentUser?.uid as string
-        console.log(userId)
-        await setDoc(doc(fireDb, 'users', data.email), {
-            userId: userId,
-            username: data.username,
+        await axios.post(`${import.meta.env.VITE_REACT_APP_BASE_URI}/auth/register`, {
             firstName: data.firstName,
             lastName: data.lastName,
-            email: data.email
+            email: data.email,
+            password: data.password,
+            username: data.username
         })
 
         navigate('/')

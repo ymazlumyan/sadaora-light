@@ -1,36 +1,38 @@
-import { FirebaseError } from "firebase/app"
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
+import axios from 'axios'
 
 export function Login() {
     const { register, handleSubmit } = useForm()
     const [error, setError] = useState('')
     const navigate = useNavigate()
-    const auth = getAuth()
 
-    const onSubmit = (data: any) => {
-        signInWithEmailAndPassword(auth, data.email, data.password)
-            .then((result) => {
-                console.log(`User: ${result.user.email}`)
+    const onSubmit = async (data: any) => {
+        let result = await axios.post(`${import.meta.env.VITE_REACT_APP_BASE_URI}/auth/login`, {
+            'email': data.email,
+            'password': data.password
+        })
 
-                if (result.user) {
-                    navigate('/')
-                }
-            })
-            .catch((error: FirebaseError) => {
-                console.log(error)
-                if (error.code === 'auth/invalid-email' || error.code === 'auth/invalid-credential') {
-                    setError('Email/Password combination is incorrect')
-                }
-            })
+        if (result && result.status === 200) {
+            console.log(result.data.authentication.sessionToken)
+
+            const token = result.data.authentication.sessionToken as string
+
+            if (token && token.length > 0) {
+                localStorage.setItem('session_token', token)
+
+                navigate('/')
+            }
+        } else {
+            // ERror Handling
+        }
     }
 
     return (
         <>
             <div className='flex justify-center place-items-center w-screen bg-neutral-800 h-screen'>
-                <div className='bg-white min-w-1/4 min-h-1/4 rounded p-3 text-center'>
+                <div className='bg-white min-w-1/4 min-h-1/4 rounded p-3 text-center text-neutral-800'>
                     <p className="text-xl mb-2">Sadaora Profiles</p>
                     <p className="text-sm italic mb-5">Log in to enter the lightweight Member Profiles + Feed app</p>
                     {error.length > 0 && <div className='bg-red-100 p-2 pl-3 m-4 rounded-lg text-start text-sm font-sans'>
